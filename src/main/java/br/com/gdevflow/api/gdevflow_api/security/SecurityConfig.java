@@ -1,23 +1,64 @@
 package br.com.gdevflow.api.gdevflow_api.security;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+// Classe responsável pelas configurações de segurança da aplicação
 @Configuration
 public class SecurityConfig {
 
+    // Define a cadeia de filtros de segurança do Spring Security
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/health").permitAll()
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults())
-            .build();
+                // Habilita CORS utilizando a configuração global definida abaixo
+                .cors(Customizer.withDefaults())
+
+                // Desabilita CSRF pois a aplicação é uma API REST stateless
+                .csrf(csrf -> csrf.disable())
+
+                // Define as regras de autorização dos endpoints
+                .authorizeHttpRequests(auth -> auth
+                        // Endpoint público para health check
+                        .requestMatchers("/health").permitAll()
+                        // Qualquer outro endpoint exige autenticação
+                        .anyRequest().authenticated()
+                )
+                .build();
+    }
+
+    // Configuração global de CORS da aplicação
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // Origens permitidas para acesso à API (frontend web)
+        config.setAllowedOrigins(List.of(
+                "http://localhost:8081",
+                "http://127.0.0.1:8081"
+        ));
+
+        // Métodos HTTP permitidos
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Headers permitidos nas requisições
+        config.setAllowedHeaders(List.of("*"));
+
+        // Permite envio de credenciais (cookies, headers de autenticação)
+        config.setAllowCredentials(true);
+
+        // Aplica a configuração de CORS para todos os endpoints
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
     }
 }
