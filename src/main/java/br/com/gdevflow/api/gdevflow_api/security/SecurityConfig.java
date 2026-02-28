@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 // Classe responsável pelas configurações de segurança da aplicação
 @Configuration
@@ -29,13 +30,18 @@ public class SecurityConfig {
                 // Desabilita CSRF pois a aplicação é uma API REST stateless
                 .csrf(csrf -> csrf.disable())
 
+                .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
                 // Define as regras de autorização dos endpoints
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoint público para health check
-                        .requestMatchers("/health").permitAll()
+                        // Endpoint público para health check e registro
+                        .requestMatchers("/health", "/auth/register").permitAll()
                         // Qualquer outro endpoint exige autenticação
                         .anyRequest().authenticated()
                 )
+                
                 .build();
     }
 
@@ -44,20 +50,17 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Origens permitidas para acesso à API (frontend web)
-        config.setAllowedOrigins(List.of(
-                "http://localhost:8081",
-                "http://127.0.0.1:8081"
-        ));
+        // Aceita todas as origens
+        config.setAllowedOriginPatterns(List.of("*"));
 
         // Métodos HTTP permitidos
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
         // Headers permitidos nas requisições
         config.setAllowedHeaders(List.of("*"));
 
         // Permite envio de credenciais (cookies, headers de autenticação)
-        config.setAllowCredentials(true);
+        config.setAllowCredentials(false);
 
         // Aplica a configuração de CORS para todos os endpoints
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
