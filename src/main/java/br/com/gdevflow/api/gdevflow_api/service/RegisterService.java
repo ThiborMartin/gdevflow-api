@@ -6,6 +6,8 @@ import br.com.gdevflow.api.gdevflow_api.model.User;
 import br.com.gdevflow.api.gdevflow_api.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class RegisterService {
@@ -20,18 +22,18 @@ public class RegisterService {
     }
 
     public void register(RegisterRequestDTO dto) {
-        System.out.println("Procurando email %s no banco de dados. Retorno: %b".formatted(dto.getEmail(), userRepository.existsByEmail(dto.getEmail())));
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            
-            System.out.println("Email já cadastrado: " + dto.getEmail());
-            throw new RuntimeException("Email já cadastrado");
+        // Normaliza o email para evitar problemas com maiúsculas/minúsculas e espaços
+        String email = dto.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
         }
 
         User user = new User(
-                dto.getName(),
-                dto.getEmail(),
-                passwordEncoder.encode(dto.getPassword()),
-                Role.DEV
+            dto.getName(),
+            email,
+            passwordEncoder.encode(dto.getPassword()),
+            Role.DEV
         );
 
         userRepository.save(user);
