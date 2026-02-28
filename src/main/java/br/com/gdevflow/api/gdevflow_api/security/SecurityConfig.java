@@ -8,13 +8,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.config.http.SessionCreationPolicy;
 
 // Classe responsável pelas configurações de segurança da aplicação
 @Configuration
@@ -37,7 +37,7 @@ public class SecurityConfig {
                 // Define as regras de autorização dos endpoints
                 .authorizeHttpRequests(auth -> auth
                         // Endpoint público para health check, registro e tratamento de erros
-                        .requestMatchers("/health", "/auth/register", "/error", "/error/**").permitAll()
+                        .requestMatchers("/health", "/auth/register", "/auth/login", "/error", "/error/**").permitAll()
                         // Qualquer outro endpoint exige autenticação
                         .anyRequest().authenticated()
                 )
