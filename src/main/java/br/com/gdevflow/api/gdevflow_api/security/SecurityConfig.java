@@ -36,8 +36,14 @@ public class SecurityConfig {
 
                 // Define as regras de autorização dos endpoints
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoint público para health check, registro e tratamento de erros
-                        .requestMatchers("/health", "/auth/register", "/auth/login", "/error", "/error/**").permitAll()
+                        .requestMatchers("/health", 
+                                        "/auth/register",
+                                        "/auth/login", 
+                                        "/error", 
+                                        "/error/**", 
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html").permitAll()
                         // Qualquer outro endpoint exige autenticação
                         .anyRequest().authenticated()
                 )
