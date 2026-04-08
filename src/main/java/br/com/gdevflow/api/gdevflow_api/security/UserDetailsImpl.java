@@ -1,6 +1,7 @@
 package br.com.gdevflow.api.gdevflow_api.security;
 
 import br.com.gdevflow.api.gdevflow_api.model.User;
+import br.com.gdevflow.api.gdevflow_api.model.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +15,18 @@ public class UserDetailsImpl implements UserDetails {
 
     public UserDetailsImpl(User user) {
         this.user = user;
+    }
+
+    public Long getId() {
+        return user.getId();
+    }
+
+    public UserRole getRole() {
+        return user.getRole();
+    }
+
+    public User getUser() {
+        return user;
     }
 
     @Override

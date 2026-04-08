@@ -12,63 +12,50 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-// Classe responsável pelas configurações de segurança da aplicação
 @Configuration
 public class SecurityConfig {
 
-    // Define a cadeia de filtros de segurança do Spring Security
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // Habilita CORS utilizando a configuração global definida abaixo
                 .cors(Customizer.withDefaults())
-
-                // Desabilita CSRF pois a aplicação é uma API REST stateless
                 .csrf(csrf -> csrf.disable())
-
-                .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-
-                // Define as regras de autorização dos endpoints
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/health", 
-                                        "/auth/register",
-                                        "/auth/login", 
-                                        "/error", 
-                                        "/error/**", 
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html").permitAll()
-                        // Qualquer outro endpoint exige autenticação
-                        .anyRequest().authenticated()
-                )
-                
+                        .requestMatchers(
+                                "/health",
+                                "/auth/register",
+                                "/auth/login",
+                                "/error",
+                                "/error/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    // Configuração global de CORS da aplicação
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // Aceita todas as origens
         config.setAllowedOriginPatterns(List.of("*"));
-
-        // Métodos HTTP permitidos
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
-        // Headers permitidos nas requisições
         config.setAllowedHeaders(List.of("*"));
-
-        // Permite envio de credenciais (cookies, headers de autenticação)
         config.setAllowCredentials(false);
 
-        // Aplica a configuração de CORS para todos os endpoints
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
@@ -81,8 +68,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }
