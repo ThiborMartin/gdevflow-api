@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record UpdateSprintRequest(
         @NotBlank String name,
+        @NotBlank String description,
         @NotNull LocalDate startDate,
         @NotNull LocalDate endDate,
         @NotNull SprintStatus status) {

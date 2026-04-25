@@ -8,6 +8,7 @@ import br.com.gdevflow.api.gdevflow_api.model.SprintStatus;
 public record SprintResponse(
         Long id,
         String name,
+        String description,
         LocalDate startDate,
         LocalDate endDate,
         SprintStatus status,
@@ -18,6 +19,7 @@ public record SprintResponse(
         return new SprintResponse(
                 sprint.getId(),
                 sprint.getName(),
+                sprint.getDescription(),
                 sprint.getStartDate(),
                 sprint.getEndDate(),
                 sprint.getStatus(),

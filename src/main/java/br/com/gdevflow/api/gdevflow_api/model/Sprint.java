@@ -31,6 +31,9 @@ public class Sprint {
     @Column(nullable = false)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Column(nullable = false)
     private LocalDate startDate;
 
@@ -45,8 +48,15 @@ public class Sprint {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    public Sprint(String name, LocalDate startDate, LocalDate endDate, SprintStatus status, Project project) {
+    public Sprint(
+            String name,
+            String description,
+            LocalDate startDate,
+            LocalDate endDate,
+            SprintStatus status,
+            Project project) {
         this.name = name;
+        this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;

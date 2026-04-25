@@ -42,6 +42,7 @@ public class SprintService {
 
         Sprint sprint = new Sprint(
                 request.name(),
+                request.description(),
                 request.startDate(),
                 request.endDate(),
                 request.status(),
@@ -74,6 +75,7 @@ public class SprintService {
         validateDates(request.startDate(), request.endDate());
 
         sprint.setName(request.name());
+        sprint.setDescription(request.description());
         sprint.setStartDate(request.startDate());
         sprint.setEndDate(request.endDate());
         sprint.setStatus(request.status());
