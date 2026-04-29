@@ -1,5 +1,6 @@
 package br.com.gdevflow.api.gdevflow_api.service;
 
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +54,7 @@ public class TaskService {
         Project project = findOwnedProject(projectId, owner.getId());
         Sprint sprint = findOwnedSprint(sprintId, owner.getId());
         validateSprintBelongsToProject(sprint, projectId);
+        validateTaskDueDate(request.dueDate(), sprint, LocalDate.now());
 
         Task task = new Task(
                 request.title(),
@@ -91,6 +93,10 @@ public class TaskService {
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
         User owner = requireFreelancer();
         Task task = findOwnedTask(taskId, owner.getId());
+        validateTaskDueDate(
+                request.dueDate(),
+                task.getSprint(),
+                task.getCreatedAt().toLocalDate());
 
         task.setTitle(request.title());
         task.setDescription(request.description());
@@ -217,6 +223,18 @@ public class TaskService {
         if (hasPendingDependency) {
             throw new IllegalArgumentException(
                     "Nao e possivel concluir a tarefa antes de finalizar todas as dependencias");
+        }
+    }
+
+    private void validateTaskDueDate(LocalDate dueDate, Sprint sprint, LocalDate minimumDate) {
+        if (dueDate.isBefore(minimumDate)) {
+            throw new IllegalArgumentException(
+                    "Data limite da tarefa nao pode ser anterior a data de criacao");
+        }
+
+        if (dueDate.isAfter(sprint.getEndDate())) {
+            throw new IllegalArgumentException(
+                    "Data limite da tarefa nao pode ser posterior a data final da sprint");
         }
     }
 }
