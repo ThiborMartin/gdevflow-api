@@ -14,4 +14,8 @@ public interface SprintRepository extends JpaRepository<Sprint, Long> {
     List<Sprint> findAllByProjectIdAndProjectOwnerIdOrderByStartDateAsc(Long projectId, Long ownerId);
 
     Optional<Sprint> findByIdAndProjectOwnerId(Long id, Long ownerId);
+
+    boolean existsByProjectIdAndNameIgnoreCase(Long projectId, String name);
+
+    boolean existsByProjectIdAndNameIgnoreCaseAndIdNot(Long projectId, String name, Long id);
 }

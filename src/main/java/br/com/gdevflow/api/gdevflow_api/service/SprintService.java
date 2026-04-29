@@ -39,6 +39,7 @@ public class SprintService {
         User owner = requireFreelancer();
         Project project = findOwnedProject(projectId, owner.getId());
         validateDates(request.startDate(), request.endDate());
+        validateUniqueSprintName(projectId, request.name(), null);
 
         Sprint sprint = new Sprint(
                 request.name(),
@@ -73,6 +74,7 @@ public class SprintService {
         User owner = requireFreelancer();
         Sprint sprint = findOwnedSprint(id, owner.getId());
         validateDates(request.startDate(), request.endDate());
+        validateUniqueSprintName(sprint.getProject().getId(), request.name(), sprint.getId());
 
         sprint.setName(request.name());
         sprint.setDescription(request.description());
@@ -118,6 +120,18 @@ public class SprintService {
     private void validateDates(java.time.LocalDate startDate, java.time.LocalDate endDate) {
         if (endDate.isBefore(startDate)) {
             throw new IllegalArgumentException("Data final da sprint nao pode ser anterior a data inicial");
+        }
+    }
+
+    private void validateUniqueSprintName(Long projectId, String name, Long sprintId) {
+        String normalizedName = name == null ? "" : name.trim();
+
+        boolean exists = sprintId == null
+                ? sprintRepository.existsByProjectIdAndNameIgnoreCase(projectId, normalizedName)
+                : sprintRepository.existsByProjectIdAndNameIgnoreCaseAndIdNot(projectId, normalizedName, sprintId);
+
+        if (exists) {
+            throw new IllegalArgumentException("Ja existe uma sprint com esse nome neste projeto");
         }
     }
 }
