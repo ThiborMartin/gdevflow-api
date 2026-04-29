@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gdevflow.api.gdevflow_api.dto.CreateProjectRequest;
+import br.com.gdevflow.api.gdevflow_api.dto.ProjectProgressResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.UpdateProjectRequest;
 import br.com.gdevflow.api.gdevflow_api.service.ProjectService;
@@ -43,6 +44,11 @@ public class ProjectController {
     @GetMapping("/{id}")
     public ProjectResponse getProject(@PathVariable Long id) {
         return projectService.getProject(id);
+    }
+
+    @GetMapping("/{id}/progress")
+    public ProjectProgressResponse getProjectProgress(@PathVariable Long id) {
+        return projectService.getProjectProgress(id);
     }
 
     @PutMapping("/{id}")
