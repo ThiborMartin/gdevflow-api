@@ -23,15 +23,16 @@ public class RegisterService {
 
     public void register(RegisterRequestDTO dto) {
         String email = dto.getEmail().trim().toLowerCase();
+        String name = dto.getName().trim();
 
         if (userRepository.existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ja cadastrado");
         }
 
-        UserRole role = dto.getRole() == null ? UserRole.FREELANCER : dto.getRole();
+        UserRole role = UserRole.fromRegistrationValue(dto.getRole());
 
         User user = new User(
-                dto.getName(),
+                name,
                 email,
                 passwordEncoder.encode(dto.getPassword()),
                 role);
