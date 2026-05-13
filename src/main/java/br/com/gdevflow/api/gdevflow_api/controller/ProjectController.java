@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.gdevflow.api.gdevflow_api.dto.AssignClientToProjectRequest;
+import br.com.gdevflow.api.gdevflow_api.dto.ClientProjectDashboardResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.CreateProjectRequest;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectProgressResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectResponse;
@@ -40,6 +41,11 @@ public class ProjectController {
     @GetMapping
     public List<ProjectResponse> listProjects() {
         return projectService.listProjects();
+    }
+
+    @GetMapping("/client")
+    public List<ClientProjectDashboardResponse> listClientProjects() {
+        return projectService.listProjectsForClient();
     }
 
     @GetMapping("/{id}")

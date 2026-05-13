@@ -15,6 +15,8 @@ public interface SprintRepository extends JpaRepository<Sprint, Long> {
 
     Optional<Sprint> findByIdAndProjectOwnerId(Long id, Long ownerId);
 
+    long countByProjectId(Long projectId);
+
     boolean existsByProjectIdAndNameIgnoreCase(Long projectId, String name);
 
     boolean existsByProjectIdAndNameIgnoreCaseAndIdNot(Long projectId, String name, Long id);

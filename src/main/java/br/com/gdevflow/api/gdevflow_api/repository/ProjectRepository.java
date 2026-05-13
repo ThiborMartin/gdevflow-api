@@ -13,5 +13,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findAllByOwnerIdOrderByCreatedAtDesc(Long ownerId);
 
+    List<Project> findAllByClientIdOrderByCreatedAtDesc(Long clientId);
+
     Optional<Project> findByIdAndOwnerId(Long id, Long ownerId);
 }

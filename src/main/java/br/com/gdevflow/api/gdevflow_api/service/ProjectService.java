@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.gdevflow.api.gdevflow_api.dto.CreateProjectRequest;
+import br.com.gdevflow.api.gdevflow_api.dto.ClientProjectDashboardResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectProgressResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.SprintProgressResponse;
@@ -65,6 +66,16 @@ public class ProjectService {
         return projectRepository.findAllByOwnerIdOrderByCreatedAtDesc(owner.getId())
                 .stream()
                 .map(ProjectResponse::fromEntity)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClientProjectDashboardResponse> listProjectsForClient() {
+        User client = requireClient();
+
+        return projectRepository.findAllByClientIdOrderByCreatedAtDesc(client.getId())
+                .stream()
+                .map(this::toClientProjectDashboardResponse)
                 .toList();
     }
 
@@ -156,6 +167,16 @@ public class ProjectService {
         return currentUser;
     }
 
+    private User requireClient() {
+        User currentUser = authenticatedUserService.getCurrentUser();
+
+        if (currentUser.getRole() != UserRole.CLIENT) {
+            throw new ForbiddenOperationException("Apenas clientes podem visualizar projetos vinculados");
+        }
+
+        return currentUser;
+    }
+
     private Project findOwnedProject(Long id, Long ownerId) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado"));
@@ -199,6 +220,14 @@ public class ProjectService {
         }
 
         return client;
+    }
+
+    private ClientProjectDashboardResponse toClientProjectDashboardResponse(Project project) {
+        long totalSprints = sprintRepository.countByProjectId(project.getId());
+        long totalTasks = taskRepository.countByProjectId(project.getId());
+        long doneTasks = taskRepository.countByProjectIdAndStatus(project.getId(), TaskStatus.DONE);
+
+        return ClientProjectDashboardResponse.fromEntity(project, totalSprints, totalTasks, doneTasks);
     }
 
     private long countByStatus(List<Task> tasks, TaskStatus status) {
