@@ -17,6 +17,7 @@ import br.com.gdevflow.api.gdevflow_api.dto.UpdateProjectRequest;
 import br.com.gdevflow.api.gdevflow_api.exception.ForbiddenOperationException;
 import br.com.gdevflow.api.gdevflow_api.exception.ResourceNotFoundException;
 import br.com.gdevflow.api.gdevflow_api.model.Project;
+import br.com.gdevflow.api.gdevflow_api.model.ProjectStatus;
 import br.com.gdevflow.api.gdevflow_api.model.Sprint;
 import br.com.gdevflow.api.gdevflow_api.model.Task;
 import br.com.gdevflow.api.gdevflow_api.model.TaskStatus;
@@ -54,6 +55,7 @@ public class ProjectService {
     public ProjectResponse createProject(CreateProjectRequest request) {
         User owner = requireFreelancer();
         Project project = new Project(request.name(), request.description(), owner, null);
+        project.setStatus(ProjectStatus.IN_PROGRESS);
         return ProjectResponse.fromEntity(projectRepository.save(project));
     }
 
@@ -139,7 +141,7 @@ public class ProjectService {
         User owner = requireFreelancer();
         Project project = findOwnedProject(id, owner.getId());
 
-        project.setClosed(true);
+        project.setStatus(ProjectStatus.WAITING_CLIENT_APPROVAL);
 
         return ProjectResponse.fromEntity(projectRepository.save(project));
     }

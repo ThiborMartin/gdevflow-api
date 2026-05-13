@@ -48,13 +48,15 @@ public class Project {
     @JoinColumn(name = "client_id")
     private User client;
 
-    @Column(nullable = false)
-    private boolean closed = false;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 40, columnDefinition = "VARCHAR(40) DEFAULT 'IN_PROGRESS'")
+    private ProjectStatus status = ProjectStatus.IN_PROGRESS;
 
     public Project(String name, String description, User owner, User client) {
         this.name = name;
         this.description = description;
         this.owner = owner;
         this.client = client;
+        this.status = ProjectStatus.IN_PROGRESS;
     }
 }

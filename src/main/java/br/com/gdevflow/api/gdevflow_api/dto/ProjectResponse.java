@@ -3,15 +3,16 @@ package br.com.gdevflow.api.gdevflow_api.dto;
 import java.time.LocalDateTime;
 
 import br.com.gdevflow.api.gdevflow_api.model.Project;
+import br.com.gdevflow.api.gdevflow_api.model.ProjectStatus;
 
 public record ProjectResponse(
         Long id,
         String name,
         String description,
         LocalDateTime createdAt,
-        boolean closed,
-        ProjectUserSummaryResponse owner,
-        ProjectUserSummaryResponse client) {
+        ProjectStatus status,
+        UserSummaryResponse owner,
+        UserSummaryResponse client) {
 
     public static ProjectResponse fromEntity(Project project) {
         return new ProjectResponse(
@@ -19,8 +20,8 @@ public record ProjectResponse(
                 project.getName(),
                 project.getDescription(),
                 project.getCreatedAt(),
-                project.isClosed(),
-                ProjectUserSummaryResponse.fromEntity(project.getOwner()),
-                ProjectUserSummaryResponse.fromEntity(project.getClient()));
+                project.getStatus(),
+                UserSummaryResponse.fromEntity(project.getOwner()),
+                UserSummaryResponse.fromEntity(project.getClient()));
     }
 }
