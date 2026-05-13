@@ -10,10 +10,8 @@ public record ProjectResponse(
         String description,
         LocalDateTime createdAt,
         boolean closed,
-        Long ownerId,
-        String ownerName,
-        Long clientId,
-        String clientName) {
+        ProjectUserSummaryResponse owner,
+        ProjectUserSummaryResponse client) {
 
     public static ProjectResponse fromEntity(Project project) {
         return new ProjectResponse(
@@ -22,9 +20,7 @@ public record ProjectResponse(
                 project.getDescription(),
                 project.getCreatedAt(),
                 project.isClosed(),
-                project.getOwner().getId(),
-                project.getOwner().getName(),
-                project.getClient() != null ? project.getClient().getId() : null,
-                project.getClient() != null ? project.getClient().getName() : null);
+                ProjectUserSummaryResponse.fromEntity(project.getOwner()),
+                ProjectUserSummaryResponse.fromEntity(project.getClient()));
     }
 }

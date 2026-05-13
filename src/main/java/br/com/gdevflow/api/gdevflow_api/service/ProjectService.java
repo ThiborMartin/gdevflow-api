@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import br.com.gdevflow.api.gdevflow_api.dto.CreateProjectRequest;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectProgressResponse;
@@ -51,9 +53,7 @@ public class ProjectService {
     @Transactional
     public ProjectResponse createProject(CreateProjectRequest request) {
         User owner = requireFreelancer();
-        User client = resolveClient(request.clientId());
-
-        Project project = new Project(request.name(), request.description(), owner, client);
+        Project project = new Project(request.name(), request.description(), owner, null);
         return ProjectResponse.fromEntity(projectRepository.save(project));
     }
 
@@ -115,7 +115,21 @@ public class ProjectService {
 
         project.setName(request.name());
         project.setDescription(request.description());
-        project.setClient(resolveClient(request.clientId()));
+
+        return ProjectResponse.fromEntity(projectRepository.save(project));
+    }
+
+    @Transactional
+    public ProjectResponse assignClientToProject(Long id, Long clientId) {
+        User owner = requireFreelancer();
+        Project project = findOwnedProject(id, owner.getId());
+
+        if (project.getClient() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Projeto ja possui cliente vinculado.");
+        }
+
+        User client = resolveClient(clientId);
+        project.setClient(client);
 
         return ProjectResponse.fromEntity(projectRepository.save(project));
     }
@@ -175,15 +189,11 @@ public class ProjectService {
     }
 
     private User resolveClient(Long clientId) {
-        if (clientId == null) {
-            return null;
-        }
-
         User client = userRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente nao encontrado"));
 
         if (client.getRole() != UserRole.CLIENT) {
-            throw new ForbiddenOperationException("Usuario informado como cliente nao possui role CLIENT");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario informado nao possui role CLIENT");
         }
 
         return client;

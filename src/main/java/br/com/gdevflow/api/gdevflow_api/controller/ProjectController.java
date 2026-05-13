@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.gdevflow.api.gdevflow_api.dto.AssignClientToProjectRequest;
 import br.com.gdevflow.api.gdevflow_api.dto.CreateProjectRequest;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectProgressResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectResponse;
@@ -54,6 +55,13 @@ public class ProjectController {
     @PutMapping("/{id}")
     public ProjectResponse updateProject(@PathVariable Long id, @RequestBody @Valid UpdateProjectRequest request) {
         return projectService.updateProject(id, request);
+    }
+
+    @PatchMapping("/{id}/client")
+    public ProjectResponse assignClientToProject(
+            @PathVariable Long id,
+            @RequestBody @Valid AssignClientToProjectRequest request) {
+        return projectService.assignClientToProject(id, request.clientId());
     }
 
     @PatchMapping("/{id}/close")
