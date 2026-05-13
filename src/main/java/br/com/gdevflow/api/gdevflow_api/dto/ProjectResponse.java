@@ -11,6 +11,7 @@ public record ProjectResponse(
         String description,
         LocalDateTime createdAt,
         ProjectStatus status,
+        LocalDateTime completedAt,
         UserSummaryResponse owner,
         UserSummaryResponse client) {
 
@@ -21,6 +22,7 @@ public record ProjectResponse(
                 project.getDescription(),
                 project.getCreatedAt(),
                 project.getStatus(),
+                project.getCompletedAt(),
                 UserSummaryResponse.fromEntity(project.getOwner()),
                 UserSummaryResponse.fromEntity(project.getClient()));
     }

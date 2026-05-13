@@ -70,6 +70,16 @@ public class ProjectController {
         return projectService.assignClientToProject(id, request.clientId());
     }
 
+    @PatchMapping("/{id}/request-approval")
+    public ProjectResponse requestProjectApproval(@PathVariable Long id) {
+        return projectService.requestProjectApproval(id);
+    }
+
+    @PatchMapping("/{id}/approve")
+    public ProjectResponse approveProject(@PathVariable Long id) {
+        return projectService.approveProject(id);
+    }
+
     @PatchMapping("/{id}/close")
     public ProjectResponse closeProject(@PathVariable Long id) {
         return projectService.closeProject(id);

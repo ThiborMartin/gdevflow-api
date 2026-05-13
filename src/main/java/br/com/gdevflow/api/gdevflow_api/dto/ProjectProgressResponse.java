@@ -1,5 +1,6 @@
 package br.com.gdevflow.api.gdevflow_api.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import br.com.gdevflow.api.gdevflow_api.model.ProjectStatus;
@@ -9,7 +10,9 @@ public record ProjectProgressResponse(
         String projectName,
         String projectDescription,
         ProjectStatus projectStatus,
+        LocalDateTime completedAt,
         UserSummaryResponse freelancer,
+        UserSummaryResponse client,
         int progressPercentage,
         long totalSprints,
         long totalTasks,

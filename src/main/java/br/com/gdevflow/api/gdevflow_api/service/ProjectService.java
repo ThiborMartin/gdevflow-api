@@ -1,5 +1,6 @@
 package br.com.gdevflow.api.gdevflow_api.service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +117,9 @@ public class ProjectService {
                 project.getName(),
                 project.getDescription(),
                 project.getStatus(),
+                project.getCompletedAt(),
                 UserSummaryResponse.fromEntity(project.getOwner()),
+                UserSummaryResponse.fromEntity(project.getClient()),
                 progressPercentage,
                 sprints.size(),
                 totalTasks,
@@ -154,13 +157,65 @@ public class ProjectService {
     }
 
     @Transactional
-    public ProjectResponse closeProject(Long id) {
+    public ProjectResponse requestProjectApproval(Long id) {
         User owner = requireFreelancer();
         Project project = findOwnedProject(id, owner.getId());
+        List<Task> projectTasks = findProjectTasks(project);
+
+        if (project.getStatus() == ProjectStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Projeto ja foi concluido.");
+        }
+
+        if (project.getStatus() == ProjectStatus.WAITING_CLIENT_APPROVAL) {
+            return ProjectResponse.fromEntity(project);
+        }
+
+        validateProjectHasClient(project);
+        validateProjectHasTasks(
+                projectTasks,
+                "Projeto precisa ter pelo menos uma tarefa para solicitar aprovacao.");
+        validateAllProjectTasksCompleted(
+                projectTasks,
+                "Conclua todas as tarefas do projeto antes de solicitar aprovacao.");
 
         project.setStatus(ProjectStatus.WAITING_CLIENT_APPROVAL);
+        project.setCompletedAt(null);
 
         return ProjectResponse.fromEntity(projectRepository.save(project));
+    }
+
+    @Transactional
+    public ProjectResponse approveProject(Long id) {
+        User client = requireClient();
+        Project project = findClientProject(id, client.getId());
+        List<Task> projectTasks = findProjectTasks(project);
+
+        if (project.getStatus() == ProjectStatus.COMPLETED) {
+            return ProjectResponse.fromEntity(project);
+        }
+
+        if (project.getStatus() != ProjectStatus.WAITING_CLIENT_APPROVAL) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Projeto ainda nao foi enviado para aprovacao do cliente.");
+        }
+
+        validateProjectHasTasks(
+                projectTasks,
+                "Projeto precisa ter pelo menos uma tarefa para ser aprovado.");
+        validateAllProjectTasksCompleted(
+                projectTasks,
+                "Projeto ainda possui tarefas pendentes e nao pode ser aprovado.");
+
+        project.setStatus(ProjectStatus.COMPLETED);
+        project.setCompletedAt(LocalDateTime.now());
+
+        return ProjectResponse.fromEntity(projectRepository.save(project));
+    }
+
+    @Transactional
+    public ProjectResponse closeProject(Long id) {
+        return requestProjectApproval(id);
     }
 
     private User requireFreelancer() {
@@ -177,7 +232,7 @@ public class ProjectService {
         User currentUser = authenticatedUserService.getCurrentUser();
 
         if (currentUser.getRole() != UserRole.CLIENT) {
-            throw new ForbiddenOperationException("Apenas clientes podem visualizar projetos vinculados");
+            throw new ForbiddenOperationException("Apenas clientes podem acessar projetos vinculados");
         }
 
         return currentUser;
@@ -189,6 +244,17 @@ public class ProjectService {
 
         if (!project.getOwner().getId().equals(ownerId)) {
             throw new ForbiddenOperationException("Projeto nao pertence ao freelancer autenticado");
+        }
+
+        return project;
+    }
+
+    private Project findClientProject(Long id, Long clientId) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado"));
+
+        if (project.getClient() == null || !project.getClient().getId().equals(clientId)) {
+            throw new ForbiddenOperationException("Projeto nao esta vinculado ao cliente autenticado");
         }
 
         return project;
@@ -226,6 +292,32 @@ public class ProjectService {
         }
 
         return client;
+    }
+
+    private List<Task> findProjectTasks(Project project) {
+        return taskRepository.findAllByProjectIdOrderByCreatedAtDesc(project.getId());
+    }
+
+    private void validateProjectHasClient(Project project) {
+        if (project.getClient() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Projeto precisa ter um cliente vinculado antes de solicitar aprovacao.");
+        }
+    }
+
+    private void validateProjectHasTasks(List<Task> tasks, String message) {
+        if (tasks.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
+    }
+
+    private void validateAllProjectTasksCompleted(List<Task> tasks, String message) {
+        boolean hasPendingTask = tasks.stream().anyMatch(task -> task.getStatus() != TaskStatus.DONE);
+
+        if (hasPendingTask) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
     }
 
     private ClientProjectDashboardResponse toClientProjectDashboardResponse(Project project) {
