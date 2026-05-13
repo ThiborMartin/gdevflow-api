@@ -164,8 +164,14 @@ public class TaskService {
     }
 
     private Task findOwnedTask(Long taskId, Long ownerId) {
-        return taskRepository.findByIdAndProjectOwnerId(taskId, ownerId)
+        Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa nao encontrada"));
+
+        if (!task.getProject().getOwner().getId().equals(ownerId)) {
+            throw new ForbiddenOperationException("Tarefa nao pertence ao freelancer autenticado");
+        }
+
+        return task;
     }
 
     private void validateSprintBelongsToProject(Sprint sprint, Long projectId) {
