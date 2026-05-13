@@ -1,5 +1,6 @@
 package br.com.gdevflow.api.gdevflow_api.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,7 +15,9 @@ import br.com.gdevflow.api.gdevflow_api.dto.ClientProjectDashboardResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectProgressResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.ProjectResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.SprintProgressResponse;
+import br.com.gdevflow.api.gdevflow_api.dto.TaskProgressResponse;
 import br.com.gdevflow.api.gdevflow_api.dto.UpdateProjectRequest;
+import br.com.gdevflow.api.gdevflow_api.dto.UserSummaryResponse;
 import br.com.gdevflow.api.gdevflow_api.exception.ForbiddenOperationException;
 import br.com.gdevflow.api.gdevflow_api.exception.ResourceNotFoundException;
 import br.com.gdevflow.api.gdevflow_api.model.Project;
@@ -111,6 +114,9 @@ public class ProjectService {
         return new ProjectProgressResponse(
                 project.getId(),
                 project.getName(),
+                project.getDescription(),
+                project.getStatus(),
+                UserSummaryResponse.fromEntity(project.getOwner()),
                 progressPercentage,
                 sprints.size(),
                 totalTasks,
@@ -243,13 +249,22 @@ public class ProjectService {
                 .filter(task -> task.getStatus() == TaskStatus.DONE)
                 .count();
         int progressPercentage = totalTasks == 0 ? 0 : (int) Math.round((doneTasks * 100.0) / totalTasks);
+        List<TaskProgressResponse> taskProgress = sprintTasks.stream()
+                .sorted(Comparator
+                        .comparing(Task::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(Task::getId, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(TaskProgressResponse::fromEntity)
+                .toList();
 
         return new SprintProgressResponse(
                 sprint.getId(),
                 sprint.getName(),
                 sprint.getStatus(),
+                sprint.getStartDate(),
+                sprint.getEndDate(),
                 progressPercentage,
                 totalTasks,
-                doneTasks);
+                doneTasks,
+                taskProgress);
     }
 }
