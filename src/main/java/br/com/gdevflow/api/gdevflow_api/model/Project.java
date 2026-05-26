@@ -14,6 +14,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,6 +54,10 @@ public class Project {
     @Column(nullable = false, length = 40, columnDefinition = "VARCHAR(40) DEFAULT 'IN_PROGRESS'")
     private ProjectStatus status = ProjectStatus.IN_PROGRESS;
 
+    // Legacy column kept in sync to support existing PostgreSQL schemas.
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean closed = false;
+
     @Column
     private LocalDateTime completedAt;
 
@@ -61,6 +67,13 @@ public class Project {
         this.owner = owner;
         this.client = client;
         this.status = ProjectStatus.IN_PROGRESS;
+        this.closed = false;
         this.completedAt = null;
+    }
+
+    @PrePersist
+    @PreUpdate
+    void syncLegacyClosedColumn() {
+        this.closed = this.status == ProjectStatus.COMPLETED;
     }
 }
